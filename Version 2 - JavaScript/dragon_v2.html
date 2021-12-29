@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dragon Curve Variants by L-Systems</title>
+    </head>
+
+    <body>
+        <form id = "frm">
+            <div>
+                <label for="r">Rules:</label><br>
+                <input type="text" id="r" name="r" value=""><br>
+            </div>
+
+            <div>
+                <label for="a">Axiom:</label><br>
+                <input type="text" id="a" name="a" value=""><br>
+            </div>
+
+            <div>
+                <label for="iSlider" id="iLabel">Iteration Number: 5; Text: </label><br>
+                <!---<input type="text" id="i" name="i" value="5"><br>--->
+                <input type="range" min="0" max="17" value="5" id="iSlider" oninput="update()">
+            </div>
+        </form>
+        <div>
+
+        </div>
+        <canvas id="can" style="width:auto; height:auto; display:block; margin-left:auto; margin-right:auto;" width="1024" height="720"></canvas>
+
+    </body>
+</html>
+
+<!--- <link rel="stylesheet" href="dragon_v2_styles.css"> --->
+<script type="application/javascript">
+//https://octave.org/octave.pdf
+    const canvasElem = document.getElementById("can");
+    const ctx = canvasElem.getContext('2d');
+
+    const iterSlideElem = document.getElementById("iSlider");
+    const rulesElem = document.getElementById("r");
+    const axiomElem = document.getElementById("a");
+    //const iterElem = document.getElementById("i");
+    const iterLabel = document.getElementById("iLabel");
+    // unit length (in graph space)
+    const unit = 1;
+
+    var t = new Turtle(new Point(0,0), 0);
+    
+    update();
+    //lSysRead(lSysExpand("FX","X=X+YF+;Y=-FX-Y",14),t); //upper limit 20 
+    
+    
+    function lSysExpand(axiom, ruleStr, iterations) {
+        let newStr = axiom;
+        let oldStr = axiom;
+        for (let k = 0; k < iterations; k++) {
+            //format: a=abab;b=bbb
+			//TODO: implement parametric format:
+			
+			oldStr = newStr;
+            newStr = "";
+            let rules = ruleStr.split(";");
+            let axiomA = Array.from(oldStr);
+			
+            for (let i = 0; i < rules.length; i++) {
+                rules[i] = rules[i].split("=");
+				
+                for (let j = 0; j < axiomA.length; j++) {
+                    if (axiomA[j] == rules[i][0]) {
+                        axiomA[j] = rules[i][1];
+                    }
+                }
+            }
+			
+            for (let i = 0; i < axiomA.length; i++) {
+                newStr+=axiomA[i];
+                console.lof
+            }
+        }
+        return newStr;
+    }
+
+    function lSysRead(str, turt) {
+        for (let i = 0; i < str.length; i++) {
+            //alphabet switch
+            switch (str[i]) {
+                case "F": 
+                    turt.forward();
+                    break;
+                case "+":
+                    turt.turn(-90);
+                    break;
+                case "-":
+                    turt.turn(90);
+                    break;
+            }
+        }
+    }
+
+    function Turtle(startPt, bearing) {
+        this.pos = startPt;
+        this.dir = bearing;
+		console.log("Bearing:" + bearing + " Dir:" + this.dir);
+		
+        this.pts = [startPt];
+        this.forward = function () { //async
+            switch (this.dir) {
+                case 0: //right-facing
+                    this.pos = new Point(this.pos.x+unit,this.pos.y);
+					
+                    break;
+                case 90: //up
+                    this.pos = new Point(this.pos.x,this.pos.y-unit);
+					
+                    break;
+                case 180: //left
+                    this.pos = new Point(this.pos.x-unit,this.pos.y);
+					
+                    break;
+                case 270: //down
+                    this.pos = new Point(this.pos.x,this.pos.y+unit);
+					
+                    break;
+            }
+            this.pts[this.pts.length] = this.pos;
+        }
+        this.turn = function (theta) { //async
+            this.dir = this.dir + theta;
+            if (this.dir >= 360) {
+                this.dir = this.dir - 360;
+            } else if (this.dir < 0) {
+                this.dir = this.dir + 360;
+            }
+        }
+    }  
+    function Point(x,y) {
+        this.x = x;
+        this.y = y;
+    }
+    
+    function renderTurtle(turt) { //async
+        ctx.strokeWidth = 5;
+        let maxY = 0;
+        let minY = 0;
+        let maxX = 0;
+        let minX = 0;
+        for (let i = 0; i < turt.pts.length; i++) {
+            if (turt.pts[i].y <= minY) minY = turt.pts[i].y;
+            if (turt.pts[i].y >= maxY) maxY = turt.pts[i].y;
+            if (turt.pts[i].x <= minX) minX = turt.pts[i].x;
+            if (turt.pts[i].x >= maxX) maxX = turt.pts[i].x;
+        }
+        let diffY = Math.abs(maxY - minY);
+        let mult = (canvasElem.height-(canvasElem.height/10))/diffY;
+        let diffX = Math.abs(maxX-minX);
+        let shift = new Point((canvasElem.width/2-((minX+(diffX/2))*mult)),(canvasElem.height/20-((minY)*mult)));
+        for (let i = 0; i < turt.pts.length-1; i++) {
+            ctx.strokeStyle = 'hsl(' + Math.floor(360*i/turt.pts.length) + ',50%, 70%)';
+            ctx.beginPath();
+            ctx.moveTo((turt.pts[i].x*mult)+shift.x,(turt.pts[i].y*mult)+shift.y);
+            ctx.lineTo((turt.pts[i+1].x*mult)+shift.x,(turt.pts[i+1].y*mult)+shift.y);
+            ctx.stroke();
+        }
+        
+    }
+    
+    function update() {
+        ctx.fillStyle = "#111111";
+        ctx.fillRect(0,0,canvasElem.width,canvasElem.height);
+        t = new Turtle(new Point(0,0), 0);
+        
+        var str = lSysExpand(axiomElem.value,rulesElem.value,parseInt(iterSlideElem.value));
+        iterLabel.innerHTML = "Iteration Number: " + iterSlideElem.value; //+ "; Text: " + str;
+        lSysRead(str,t); //upper limit 20 
+        renderTurtle(t);
+        
+        //dragon: Rules: X=X+YF+;Y=-FX-Y Axiom: FX
+        //levy c curve: Rules: X=X+XF+ Axiom: FX
+        //the kraken: Rules: X=X+YF+;Y=-FY-X Axiom: FX
+        //the orient: Rules: X=XF+Y+;Y=-X-FY Axiom: X
+        //lyon: Rules: A=C+DF+;B=-FC-D;C=A-BF-;D=+FA+B Axiom: FA
+        //lyon001:  Rules: A=C+DF+;B=-FC-D;C=E+GF+;D=-FE-G;E=A-BF-;G=+FA+B Axiom: FA
+        //lyon0011: Rules: A=C+DF+;B=-FC-D;C=E+GF+;D=-FE-G;E=H-IF-;G=+FH+I;H=A-BF-;I=+FA+B Axiom: FA
+        //lyon0001: Rules: A=C+DF+;B=-FC-D;C=E+GF+;D=-FE-G;E=H+IF+;G=-FH-I;H=A-BF-;I=+FA+B Axiom: FA
+        //lyon00011: Rules: A=C+DF+;B=-FC-D;C=E+GF+;D=-FE-G;E=H+IF+;G=-FH-I;H=J-KF-;I=+FJ+K;J=A-BF-;K=+FA+B Axiom: FA
+        //lyon000111: Rules: A=C+DF+;B=-FC-D;C=E+GF+;D=-FE-G;E=H+IF+;G=-FH-I;H=J-KF-;I=+FJ+K;J=L-MF-;K=+FL+M;L=A-BF-;M=+FA+B Axiom: FA
+        //lyon00001111: Rules: A=C+DF+;B=-FC-D;C=E+GF+;D=-FE-G;E=H+IF+;G=-FH-I;H=J+KF+;I=-FJ-K;J=L-MF-;K=+FL+M;L=N-OF-;M=+FN+O;N=P-QF-;O=+FP+Q;P=A-BF-;Q=+FA+B Axiom: FA
+        
+        //lyon: Rules: A=C+DF+;B=-FC-D;C=A-BF-;D=+FA+B Axiom: FA
+        //lyon001:  Rules: A=C+DF+;B=-FC-D;C=E+GF+;D=-FE-G;E=A-BF-;G=+FA+B Axiom: FA
+        //lyon0001:  Rules: A=C+DF+;B=-FC-D;C=E+GF+;D=-FE-G;E=H+IF+;G=-FH-I;H=A-BF-;I=+FA+B Axiom: FA
+        //lyon00001:  Rules: A=C+DF+;B=-FC-D;C=E+GF+;D=-FE-G;E=H+IF+;G=-FH-I;H=J+KF+;I=-FJ-K;J=A-BF-;K=+FA+B Axiom: FA
+        
+    }
+</script>

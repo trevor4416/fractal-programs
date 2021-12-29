@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dragon Curve Engine</title>
+    </head>
+
+    <body>
+        <form id = "frm">
+            <div>
+                <label for="le">Length:</label><br>
+                <input type="text" id="le" name="le" value="10"><br>
+                <input type="range" min="1" max="50" value="10" id="leSlider">
+            </div>
+
+            <div>
+                <label for="t">Theta:</label><br>
+                <input type="text" id="t" name="t" value="90"><br>
+                <input type="range" min="0" max="360" value="90" id="thetaSlider">
+            </div>
+
+            <div>
+                <label for="i">Iterations:</label><br>
+                <input type="text" id="i" name="i" value="5"><br>
+                <input type="range" min="0" max="15" value="5" id="iSlider">
+            </div>
+            <div>
+                <label for="alt">Alternation Type:</label><br>
+                <input type="text" id="alt" name="alt" value="0"><br>
+                <input type="range" min="0" max="2" value="0" id="altSlider">
+            </div>
+        </form>
+        <div>
+
+        </div>
+        <canvas id="can" style="width:auto; height:auto; display:block; margin-left:auto; margin-right:auto;" width="1024" height="720"></canvas>
+
+    </body>
+</html>
+
+<link rel="stylesheet" href="dragon_v1_styles.css">
+<script src="dragon_v1_script.js"></script>
